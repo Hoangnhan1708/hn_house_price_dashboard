@@ -1,0 +1,92 @@
+.main{
+    display: flex;
+}
+
+.tableau-dashboard{
+    width: 75vw;
+    height: 100vh;
+}
+
+.chatbot-container{
+    width: 25vw;
+    height: 900px;
+}
+
+img{
+    width: 20px;
+    height: 20px;
+}
+
+.message-history{
+    height: 90vh;
+    position: relative;
+}
+
+.message-item{
+    display: flex;
+    margin: 10px 0;
+}
+
+.message-item p {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 0;
+    display: inline-block;
+}
+
+.client{
+    justify-content: flex-end;
+    margin-right: 5px;
+    
+}
+
+.client p {
+    background-color: #f4f4f4;
+    color: #333;
+   
+}
+
+.server{
+    justify-content: flex-start;
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+}
+
+
+
+.input-box{
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    right: 0;
+    bottom: 10px;
+    cursor:text;
+}
+
+.prompt-input{
+    width: 400px;
+    height: 50px;
+    font-size: 16px;
+    background-color: #f4f4f4;
+    border: none;
+    outline: none;
+    border-radius: 16px;
+    padding: 14px;
+    cursor:text;
+}
+
+.submit-btn{
+    position: absolute;
+    right: 0;
+    bottom: 8px;
+    border-radius: 50%;
+    background-color: black;
+    color: #fff;
+    cursor: pointer;
+}
+
+.submit-btn:hover{
+    opacity: 0.8;
+}
