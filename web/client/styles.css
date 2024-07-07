@@ -10,6 +10,7 @@
 .chatbot-container{
     width: 25vw;
     height: 900px;
+    overflow-y:auto
 }
 
 img{
@@ -18,7 +19,7 @@ img{
 }
 
 .message-history{
-    height: 90vh;
+    min-height: 90vh;
     position: relative;
 }
 

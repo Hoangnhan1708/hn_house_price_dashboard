@@ -3,22 +3,22 @@ const inputBox = document.getElementById('input');
 const messageHistory = document.querySelector('.message-history')
 
 var listMessage= [
-    {
-        type: "client",
-        content: "Hãy làm gì đó cho tôi"
-    },
-    {
-        type: "server",
-        content: "abc acasadda cadssad adasdas adasd asdasdadadas adsasdasd adasdasd"
-    },
-    {
-        type: "client",
-        content: "Hãy làm gì đó cho tôi"
-    },
-    {
-        type: "server",
-        content: "abc acasadda cadssad adasdas adasd asdasdadadas adsasdasd adasdasd"
-    }
+    // {
+    //     type: "client",
+    //     content: "Hãy làm gì đó cho tôi"
+    // },
+    // {
+    //     type: "server",
+    //     content: "abc acasadda cadssad adasdas adasd asdasdadadas adsasdasd adasdasd"
+    // },
+    // {
+    //     type: "client",
+    //     content: "Hãy làm gì đó cho tôi"
+    // },
+    // {
+    //     type: "server",
+    //     content: "abc acasadda cadssad adasdas adasd asdasdadadas adsasdasd adasdasd"
+    // }
 ];
 
 // const handleSubmit = async () => {
