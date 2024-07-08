@@ -34,7 +34,8 @@ model = genai.GenerativeModel(
 )
 
 
-df = pd.read_csv('../../VN_housing_dataset_preprocessed.csv')
+df = pd.read_csv('../../datasets/processed/VN_housing_dataset_preprocessed.csv')
+
 
 num_col_info_df = None
 
@@ -119,9 +120,8 @@ def query():
             "role": "model",
             "parts": response.text
         })
-        # response = get_model_response(data, content)
         
-        # return jsonify({'content': response})
+
         return jsonify({'content': response.text})
 
     except Exception as e:
