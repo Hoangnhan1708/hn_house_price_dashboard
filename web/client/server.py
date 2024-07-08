@@ -1,22 +1,14 @@
 import os
+import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import thư viện CORS
-from langchain_community.document_loaders import CSVLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.chains.question_answering import load_qa_chain
-from langchain_google_genai import ChatGoogleGenerativeAI
+
+import pandas as pd
 import google.generativeai as genai
 # Khởi tạo ứng dụng Flask
 app = Flask(__name__)
 CORS(app, resources={r"/query": {"origins": "http://127.0.0.1:5501"}})
 
-csv_loader = CSVLoader(file_path = '../../VN_housing_dataset_preprocessed.csv', encoding = "utf-8", csv_args={
-  'delimiter': ','
-})
-data = csv_loader.load()
 
 
 
@@ -41,39 +33,68 @@ model = genai.GenerativeModel(
   # See https://ai.google.dev/gemini-api/docs/safety-settings
 )
 
-# def get_model_response(file,query):
-#   #Function to get response from GEMINI PRO def get_model_response(file, query):
-# # Split the context text into manageable chunks
-  
-#   text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200) 
-#   context = "\n\n".join(str(p.page_content) for p in file)
-#   data = text_splitter.split_text(context)
-  
-#   embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001") 
-#   searcher = Chroma.from_texts (data, embeddings).as_retriever()
-#   print("hihi")
-#   q = "Which price is largest?"
-#   records = searcher.get_relevant_documents(q) 
-#   print (records)
-#   prompt_template ="""
-#     You have to answer the question from the provided context and make sure that you provide all the details\n 
-#     Context: {context}?\n
-#     Question: {question} \n
-    
-#     Answer:
-#   """
-  
 
-#   prompt = PromptTemplate(template=prompt_template, input_variables= ["context", "question"])
-#   model = ChatGoogleGenerativeAI (model="gemini-1.5-flash", temperature=0.9)
-#   chain = load_qa_chain (model, chain_type="stuff", prompt= prompt)
-#   response = chain (
-#     {
-#     "input_documents": records, "question": query
-#     }
-#    , return_only_outputs=True)
-#   return response['output_text']
-  
+df = pd.read_csv('../../VN_housing_dataset_preprocessed.csv')
+
+num_col_info_df = None
+
+num_col_info_df = df.select_dtypes(include=np.number).copy()
+
+def missing_ratio(column):
+    return ((column.isnull().sum() / column.shape[0]) * 100).round(1)
+
+def lower_quartile(column):
+    return (column.quantile(0.25)).round(1)
+
+def median(column):
+    return (column.median())
+
+def upper_quartile(column):
+    return (column.quantile(0.75)).round(1)
+
+# Làm tròn giá trị đến 1 chữ số thập phân
+num_col_info_df = num_col_info_df.round(1)
+
+num_col_info_df = num_col_info_df.agg([missing_ratio, "min", lower_quartile, median, upper_quartile, "max"])
+
+cat_col_info_df = df.select_dtypes(exclude=[np.number])
+
+def missing_ratio(column):
+    return ((column.isnull().sum() / column.shape[0]) * 100).round(1)
+
+# Hàm tính số lượng giá trị
+def num_values(column):
+    return column.nunique()
+
+# Hàm tính tỷ lệ của từng giá trị
+def value_ratios(column):
+    value_counts = column.value_counts() #Đếm số lượng của mỗi loại value trong 1 cột
+    non_missing_count = value_counts.sum() #Tổng số lượng của tất cả value trong 1 cột
+    ratios = (value_counts / non_missing_count * 100).round(1) #Lưu tỉ lệ vào Series
+    ratios_dict = ratios.to_dict()
+    sorted_ratios_dict = dict(sorted(ratios_dict.items(), key=lambda item: item[1], reverse=True))
+    return sorted_ratios_dict
+
+cat_col_info_df = cat_col_info_df.agg([missing_ratio, num_values, value_ratios])
+
+
+
+desc = str(df.describe().to_dict())
+cols = str(df.columns.to_list())
+dtype = str(df.dtypes.to_dict())
+num_col_info_dict = str(num_col_info_df.to_dict())
+cat_col_info_dict = str(cat_col_info_df.to_dict())
+
+
+knowledge = [cat_col_info_dict, num_col_info_dict, desc, cols,dtype]
+
+history_full = [
+    {
+        "role": "user",
+        "parts": knowledge
+    }
+]
+
 
 @app.route('/query', methods=['POST'])
 def query():
@@ -84,11 +105,20 @@ def query():
     try:
         
         chat_session = model.start_chat(
-        history=[
-        ]
+        history= history_full
         )
+        # Thêm câu hỏi vào lịch sử
+        history_full.append({
+            "role": "user",
+            "parts": content
+        })
         
         response = chat_session.send_message(content)
+         # Thêm câu trả lời vào lịch sử
+        history_full.append({
+            "role": "model",
+            "parts": response.text
+        })
         # response = get_model_response(data, content)
         
         # return jsonify({'content': response})
@@ -101,3 +131,5 @@ def query():
 # Chạy ứng dụng Flask
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
+    
+    
