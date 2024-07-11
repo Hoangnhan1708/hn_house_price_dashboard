@@ -57,6 +57,12 @@ def upper_quartile(column):
 num_col_info_df = num_col_info_df.round(1)
 
 num_col_info_df = num_col_info_df.agg([missing_ratio, "min", lower_quartile, median, upper_quartile, "max"])
+df['Ngày'] = pd.to_datetime(df['Ngày'])
+df['Tháng'] = df['Ngày'].dt.month
+df['Năm'] = df['Ngày'].dt.year
+
+df['Tháng'] = df['Tháng'].astype('category')
+df['Năm'] = df['Năm'].astype('category')
 
 cat_col_info_df = df.select_dtypes(exclude=[np.number])
 
@@ -68,15 +74,17 @@ def num_values(column):
     return column.nunique()
 
 # Hàm tính tỷ lệ của từng giá trị
-def value_ratios(column):
-    value_counts = column.value_counts() #Đếm số lượng của mỗi loại value trong 1 cột
-    non_missing_count = value_counts.sum() #Tổng số lượng của tất cả value trong 1 cột
-    ratios = (value_counts / non_missing_count * 100).round(1) #Lưu tỉ lệ vào Series
-    ratios_dict = ratios.to_dict()
-    sorted_ratios_dict = dict(sorted(ratios_dict.items(), key=lambda item: item[1], reverse=True))
-    return sorted_ratios_dict
+def value_ratios_and_counts(column):
+    value_counts = column.value_counts() # Count the occurrences of each value
+    non_missing_count = value_counts.sum() # Total count of non-missing values
+    ratios = (value_counts / non_missing_count * 100).round(1) # Calculate the ratios
+    result = pd.DataFrame({
+        'count': value_counts,
+        'ratio': ratios
+    })
+    return result.to_dict()
 
-cat_col_info_df = cat_col_info_df.agg([missing_ratio, num_values, value_ratios])
+cat_col_info_df = cat_col_info_df.agg([missing_ratio, num_values, value_ratios_and_counts])
 
 
 
@@ -131,5 +139,3 @@ def query():
 # Chạy ứng dụng Flask
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
-    
-    
